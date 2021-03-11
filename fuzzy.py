@@ -35,14 +35,11 @@ def getCSV ():
 # 	df2.plot(ax=axes[0], title = 'Raw values',kind='line', y='PR(Bpm)',ylabel = 'PR(Bpm)')
 # 	df2.plot(ax=axes[1] ,y='SpO2(%)', xlabel = 'Time(seg)', ylabel = 'SpO2(%)')
 
-def getCSV (datas):
-    global df
-    global data
-    global import_file_path
-    global data_frecuencia
-    global data_saturacion
+#-----------------------------------Subir archivo-----------------------------------------------
 
-    df = pd.read_csv ("C:\\Users\\Jona_\\Documents\\RESIDENCIA\\cv2000\\codVerde1-2k.csv")
+def getCSV (datas):
+
+    df = datas
     data = df.drop(["Unnamed: 0"],axis=1)
     data.rename(columns={"SpO2":"SpO2(%)","HR":"PR(Bpm)"}, inplace=True)
     data_saturacion = data['SpO2(%)']
@@ -127,9 +124,11 @@ def showFuzzy(): #difuso 1
 	#plt.legend('P')
 	#figura.canvas.set_window_title("Probabilidad de fallo normal")
 	#plt.show()
+#-----------------------------------Subir archivo-----------------------------------------------
 
-#--------------------------------------------------------------------------------
-def showFuzzy(saturacion,frecuencia): #difuso 1 modificado
+
+#--------------------------------------#difuso 1 modificado------------------------------------------
+def showFuzzy(saturacion,frecuencia):
 
 	spo2 = ctrl.Antecedent(np.arange(74, 100, 0.05), "oxygen_saturation")
 	hr = ctrl.Antecedent(np.arange(45, 180, 0.05), "heart_rate")
@@ -230,7 +229,7 @@ def showFuzzy(saturacion,frecuencia): #difuso 1 modificado
 	#figura.canvas.set_window_title("Probabilidad de fallo normal")
 	#plt.show()
 
-#--------------------------------------------------------------------------------
+#--------------------------------------#difuso 1 modificado------------------------------------------
 
 def movingMedianGraphSpO2(): #optimizacion
 	global df3
@@ -344,7 +343,7 @@ def movilFuzzy(): #difuso 2
 	#fig = plt.figure(1)
 	#fig.canvas.set_window_title("Difuso mediana")
 
-	print("Grado de urgencia movilFuzzy: ",measurement.output['inestability']) 
+	print("Grado de urgencia movilFuzzy: ",measurement.output['inestability'])
 	if measurement.output['inestability'] >= 0 and measurement.output['inestability'] < 0.04:
 		print("less_urgent movilFuzzy - Codigo Verde, limite inferior")
 	if measurement.output['inestability'] >= 0.04 and measurement.output['inestability'] < 0.1:
