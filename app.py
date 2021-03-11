@@ -4,8 +4,9 @@ from flask.json import jsonify #, request, jsonify, flash, redirect,url_for
 import werkzeug, os
 from flask.helpers import make_response
 from flask_restful import Resource, Api, reqparse
-from fuzzy import showFuzzy #se importa la funcion fuzzy que se usara
+from fuzzy import showFuzzy, getCSV #se importa la funcion fuzzy que se usara
 import pandas as pd
+import gunicorn
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -49,10 +50,9 @@ class EvalCSV(Resource):
                     'message':'No file found',
                     'status':'error'
                     }
-		csv=data['file']
-		csv_data = pd.read_csv(csv)#para verificar que lo esta leyendo, se remplaza pro una funcion que envie el valor
-
-		return make_response(jsonify({"message": "recibido"}),201)
+		csv_data = pd.read_csv(data['file'])
+		getCSV(csv_data)
+		return make_response({"message": "recibido"},201)
 
 class EvalCSV2(Resource):
 	def post(self):
@@ -82,5 +82,5 @@ api.add_resource(EvalCSV,'/upload')
 api.add_resource(EvalCSV2,'/upload2')
 
 
-if __name__ == '__main__':
-    app.run(host='localhost', debug=True, port=5000)
+#if __name__ == '__main__':
+#   app.run(host='localhost', debug=True, port=5000)
