@@ -35,6 +35,22 @@ def getCSV ():
 # 	df2.plot(ax=axes[0], title = 'Raw values',kind='line', y='PR(Bpm)',ylabel = 'PR(Bpm)')
 # 	df2.plot(ax=axes[1] ,y='SpO2(%)', xlabel = 'Time(seg)', ylabel = 'SpO2(%)')
 
+def getCSV (datas):
+    global df
+    global data
+    global import_file_path
+    global data_frecuencia
+    global data_saturacion
+
+    df = pd.read_csv ("C:\\Users\\Jona_\\Documents\\RESIDENCIA\\cv2000\\codVerde1-2k.csv")
+    data = df.drop(["Unnamed: 0"],axis=1)
+    data.rename(columns={"SpO2":"SpO2(%)","HR":"PR(Bpm)"}, inplace=True)
+    data_saturacion = data['SpO2(%)']
+    data_frecuencia = data['PR(Bpm)']
+    print("----------------------------------------------------------------------------------------------------")
+    print('Saturacion promedio: ',data_saturacion.mean()) #promedios de archivos
+    print('Frecuencia promedio: ',data_frecuencia.mean())
+
 def showFuzzy(): #difuso 1
 	global normal
 	spo2 = ctrl.Antecedent(np.arange(74, 100, 0.05), "oxygen_saturation")
