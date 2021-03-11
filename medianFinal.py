@@ -1,48 +1,17 @@
-from flask import Flask, app, request
-from flask_restful import Resource, Api
-
+from matplotlib.figure import Figure 
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk 
+from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
+from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 from skfuzzy import control as ctrl
 from sklearn.metrics import mean_absolute_error
+from time import process_time
+from timeit import default_timer as timer
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import time
+import matplotlib.animation as animation
 import skfuzzy as fuzzy
-
-app = Flask(__name__)
-api= Api(app)
-
-#ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-
-#@app.route('/upload/', methods=['GET', 'POST'])
-#def upload():
-#	if request.method == 'POST':
-#		file = request.files['file']
-#		if file:
-#			filename = secure_filename(file.filename)
-#			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-#			a = 'file uploaded'
-#	return render_template('upload.html', data = a)
-
-
-#ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-#
-#class UploadCSV(Resource):
-#
-#    def post(self):
-#        files = request.files['file']
-#        files.save(os.path.join(ROOT_PATH,files.filename))
-#        data = pd.read_csv(os.path.join(ROOT_PATH,files.filename))
-#        print(data)
-#
-#api.add_resource(UploadCSV, '/v1/upload')
-
-#class UploadCSV(Resource):
-#	def post(self):
-#		file = request.files['file']
-#		data = pd.read_csv(file)
-#		print(data)
-
-
-#api.add_resource(UploadCSV,'/upload')
 
 def getCSV ():
     global df
@@ -51,14 +20,22 @@ def getCSV ():
     global data_frecuencia
     global data_saturacion
 
-    df = pd.read_csv ("C:\\Users\\Jona_\\Documents\\RESIDENCIA\\cv2000\\codVerde1-2k.csv")
-    data = df.drop(["Unnamed: 0"],axis=1)
+    df = pd.read_csv ("C:\\Users\\hdezl\\Desktop\\Tout\\pyC\\GUI\\simulacion\\codigo Verde - 250\\codVerde2-250.csv")
+    data = df.drop(["Unnamed: 0"],axis=1) 
     data.rename(columns={"SpO2":"SpO2(%)","HR":"PR(Bpm)"}, inplace=True)
     data_saturacion = data['SpO2(%)']
     data_frecuencia = data['PR(Bpm)']
     print("----------------------------------------------------------------------------------------------------")
     print('Saturacion promedio: ',data_saturacion.mean()) #promedios de archivos
     print('Frecuencia promedio: ',data_frecuencia.mean())
+
+# def plotCSV ():
+# 	global my_progress
+
+# 	df2 = data[['SpO2(%)', 'PR(Bpm)']]
+# 	fig, axes = plt.subplots(nrows=2, ncols=1)
+# 	df2.plot(ax=axes[0], title = 'Raw values',kind='line', y='PR(Bpm)',ylabel = 'PR(Bpm)')
+# 	df2.plot(ax=axes[1] ,y='SpO2(%)', xlabel = 'Time(seg)', ylabel = 'SpO2(%)')
 
 def showFuzzy(): #difuso 1
 	global normal
@@ -108,7 +85,12 @@ def showFuzzy(): #difuso 1
 		measurement.compute()
 		output.append(measurement.output['inestability'])
 
-	print("Grado de urgencia: ",measurement.output['inestability'])
+	normal = measurement.output['inestability']
+	inestability.view(sim=measurement)
+	fig = plt.figure(1)
+	fig.canvas.set_window_title("Difuso normal")
+
+	print("Grado de urgencia: ",measurement.output['inestability']) 
 	if measurement.output['inestability'] >= 0 and measurement.output['inestability'] < 0.04:
 		print("less_urgent - Codigo Verde, limite inferior")
 	if measurement.output['inestability'] >= 0.04 and measurement.output['inestability'] < 0.1:
@@ -123,13 +105,34 @@ def showFuzzy(): #difuso 1
 		print("urgent - Codigo Naranja, limite superior")
 	if measurement.output['inestability'] >= 0.9 and measurement.output['inestability'] <= 1:
 		print("Resuscitacion - Codigo Rojo")
-
+	figura, axx = plt.subplots()
+	axx.plot(output)
+	plt.title('Probability of Failure', fontsize=13)
+	plt.xlabel('Time(seg)', fontsize=12)
+	plt.ylabel('Probability', fontsize=12)
+	plt.legend('P')
+	figura.canvas.set_window_title("Probabilidad de fallo normal")
+	plt.show()
 
 def movingMedianGraphSpO2(): #optimizacion
 	global df3
 	data_saturacion_fuzzy = data_saturacion
 	data_saturacion_fuzzy_media = data_saturacion_fuzzy.median()
+
+	data_saturacion_fuzzy.plot(color='#024A86', linewidth=3, figsize=(10,6))
 	df3 = data_saturacion_fuzzy.rolling(window=15).median()
+	plt.plot(df3,color='magenta')
+# modify ticks size
+	plt.xticks(fontsize=14)
+	plt.yticks(fontsize=14)
+	plt.legend(fontsize=14)
+# title and labels
+	plt.title('Movil Median - Oxygen Saturation', fontsize=16)
+	plt.xlabel('Time(seg)', fontsize=14)
+	plt.ylabel('SpO2', fontsize=14)
+	fig = plt.figure(1)
+	fig.canvas.set_window_title("Metodo Mediana SpO2")
+	plt.show()
 
 # mean absolute error
 	y_true = data_saturacion_fuzzy
@@ -143,7 +146,21 @@ def movingMedianGraphHR(): #optimizacion
 	global df4
 	data_frecuencia_fuzzy = data_frecuencia
 	data_frecuencia_fuzzy_media = data_frecuencia_fuzzy.median()
+	data_frecuencia_fuzzy.plot(color='#024A86', linewidth=3, figsize=(10,6))
 	df4 = data_frecuencia_fuzzy.rolling(window=15).median()
+	plt.plot(df4,color='magenta')
+
+# modify ticks size
+	plt.xticks(fontsize=14)
+	plt.yticks(fontsize=14)
+	plt.legend(fontsize=14)
+# title and labels
+	plt.title('Movil Median - Heart rate', fontsize=16)
+	plt.xlabel('Time(seg)', fontsize=14)
+	plt.ylabel('PR(Bpm)', fontsize=14)
+	fig = plt.figure(1)
+	fig.canvas.set_window_title("Metodo Mediana HR")
+	plt.show()
 
 	# mean absolute error
 	y_true = data_frecuencia_fuzzy
@@ -206,7 +223,11 @@ def movilFuzzy(): #difuso 2
 	movil = measurement.output['inestability']
 	print(">>>>>>>>>>>>>>>>>>>>>>Difuso con Mediana Movil<<<<<<<<<<<<<<<<<<<<<<<<<<")
 
-	print("Grado de urgencia movilFuzzy: ",measurement.output['inestability'])
+	inestability.view(sim=measurement)
+	fig = plt.figure(1)
+	fig.canvas.set_window_title("Difuso mediana")
+	
+	print("Grado de urgencia movilFuzzy: ",measurement.output['inestability']) 
 	if measurement.output['inestability'] >= 0 and measurement.output['inestability'] < 0.04:
 		print("less_urgent movilFuzzy - Codigo Verde, limite inferior")
 	if measurement.output['inestability'] >= 0.04 and measurement.output['inestability'] < 0.1:
@@ -221,6 +242,14 @@ def movilFuzzy(): #difuso 2
 		print("urgent movilFuzzy - Codigo Naranja, limite superior")
 	if measurement.output['inestability'] >= 0.9 and measurement.output['inestability'] < 1:
 		print("Resuscitacion movilFuzzy - Codigo Rojo")
+	figura, axx = plt.subplots()
+	axx.plot(output)
+	plt.title('Probability of Failure', fontsize=13)
+	plt.xlabel('Time(seg)', fontsize=12)
+	plt.ylabel('Probability', fontsize=12)
+	plt.legend('P')
+	figura.canvas.set_window_title("Probabilidad de fallo con difuso mediana")
+	plt.show()
 
 
 def main():
@@ -232,5 +261,7 @@ def main():
 	movilFuzzy()
 
 
-if __name__ == '__main__':
-    app.run(host='localhost', debug=True, port=5000)
+
+if __name__ == "__main__":
+
+    main()

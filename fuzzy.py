@@ -36,20 +36,22 @@ def getCSV ():
 # 	df2.plot(ax=axes[1] ,y='SpO2(%)', xlabel = 'Time(seg)', ylabel = 'SpO2(%)')
 
 #-----------------------------------Subir archivo-----------------------------------------------
-
 def getCSV (datas):
-
     df = datas
     data = df.drop(["Unnamed: 0"],axis=1)
     data.rename(columns={"SpO2":"SpO2(%)","HR":"PR(Bpm)"}, inplace=True)
     data_saturacion = data['SpO2(%)']
     data_frecuencia = data['PR(Bpm)']
     print("----------------------------------------------------------------------------------------------------")
-    print('Saturacion promedio: ',data_saturacion.mean()) #promedios de archivos
+    print('Saturacion promedio: ',data_saturacion.mean())
     print('Frecuencia promedio: ',data_frecuencia.mean())
+    return showFuzzy1(data_saturacion,data_frecuencia)
+#-----------------------------------Subir archivo-----------------------------------------------
 
-def showFuzzy(): #difuso 1
-	global normal
+
+
+def showFuzzy1(sat,freq): #difuso 1
+	#global normal
 	spo2 = ctrl.Antecedent(np.arange(74, 100, 0.05), "oxygen_saturation")
 	hr = ctrl.Antecedent(np.arange(45, 180, 0.05), "heart_rate")
 	inestability = ctrl.Consequent(np.arange(0, 1, 0.001), "inestability")
@@ -89,33 +91,57 @@ def showFuzzy(): #difuso 1
 	inestability_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10, rule11, rule12, rule13, rule14, rule15, rule16])
 	measurement = ctrl.ControlSystemSimulation(inestability_ctrl)
 
+	#output = []
+	#for i in range(len(data['SpO2(%)'])):
+	#	measurement.input['oxygen_saturation'] = data['SpO2(%)'][i]
+	#	measurement.input['heart_rate'] = data['PR(Bpm)'][i]
+	#	measurement.compute()
+	#	output.append(measurement.output['inestability'])
+
 	output = []
-	for i in range(len(data['SpO2(%)'])):
-		measurement.input['oxygen_saturation'] = data['SpO2(%)'][i]
-		measurement.input['heart_rate'] = data['PR(Bpm)'][i]
+	for i in range(len(sat)):
+		measurement.input['oxygen_saturation'] = sat[i]
+		measurement.input['heart_rate'] = freq[i]
 		measurement.compute()
 		output.append(measurement.output['inestability'])
-
 	#normal = measurement.output['inestability']
 	#inestability.view(sim=measurement)
 	#fig = plt.figure(1)
 	#fig.canvas.set_window_title("Difuso normal")
 
-	print("Grado de urgencia: ",measurement.output['inestability'])
+	grado_urgencia=measurement.output['inestability']
 	if measurement.output['inestability'] >= 0 and measurement.output['inestability'] < 0.04:
-		print("less_urgent - Codigo Verde, limite inferior")
+		triage, codigo, limite = "less_urgent" , "Verde" , "inferior"
 	if measurement.output['inestability'] >= 0.04 and measurement.output['inestability'] < 0.1:
-		print("less_urgent - Codigo Verde, limite superior")
+		triage, codigo, limite = "less_urgent" , "Verde" , "superior"
 	if measurement.output['inestability'] >= 0.1 and measurement.output['inestability'] < 0.35:
-		print("no_urgent - Codigo Amarillo, limite inferior")
+		triage, codigo, limite = "no_urgent" , "amarillo" , "inferior"
 	if measurement.output['inestability'] >= 0.35 and measurement.output['inestability'] < 0.45:
-		print("no_urgent - Codigo Amarillo, limite superior")
+		triage, codigo, limite = "no_urgent" , "amarillo" , "superior"
 	if measurement.output['inestability'] >= 0.45 and measurement.output['inestability'] < 0.75:
-		print("urgent - Codigo Naranja, limite inferior")
+		triage, codigo, limite = "urgent" , "naranja" , "inferior"
 	if measurement.output['inestability'] >= 0.75 and measurement.output['inestability'] < 0.9:
-		print("urgent - Codigo Naranja, limite superior")
+		triage, codigo, limite = "urgent" , "naranja" , "inferior"
 	if measurement.output['inestability'] >= 0.9 and measurement.output['inestability'] <= 1:
-		print("Resuscitacion - Codigo Rojo")
+		triage, codigo, limite = "resuscitacion" , "rojo" , "superior"
+	return grado_urgencia,triage,codigo,limite
+
+	#print("Grado de urgencia: ",measurement.output['inestability'])
+	#if measurement.output['inestability'] >= 0 and measurement.output['inestability'] < 0.04:
+	#	print("less_urgent - Codigo Verde, limite inferior")
+	#if measurement.output['inestability'] >= 0.04 and measurement.output['inestability'] < 0.1:
+	#	print("less_urgent - Codigo Verde, limite superior")
+	#if measurement.output['inestability'] >= 0.1 and measurement.output['inestability'] < 0.35:
+	#	print("no_urgent - Codigo Amarillo, limite inferior")
+	#if measurement.output['inestability'] >= 0.35 and measurement.output['inestability'] < 0.45:
+	#	print("no_urgent - Codigo Amarillo, limite superior")
+	#if measurement.output['inestability'] >= 0.45 and measurement.output['inestability'] < 0.75:
+	#	print("urgent - Codigo Naranja, limite inferior")
+	#if measurement.output['inestability'] >= 0.75 and measurement.output['inestability'] < 0.9:
+	#	print("urgent - Codigo Naranja, limite superior")
+	#if measurement.output['inestability'] >= 0.9 and measurement.output['inestability'] <= 1:
+	#	print("Resuscitacion - Codigo Rojo")
+
 	#figura, axx = plt.subplots()
 	#axx.plot(output)
 	#plt.title('Probability of Failure', fontsize=13)
@@ -124,7 +150,7 @@ def showFuzzy(): #difuso 1
 	#plt.legend('P')
 	#figura.canvas.set_window_title("Probabilidad de fallo normal")
 	#plt.show()
-#-----------------------------------Subir archivo-----------------------------------------------
+
 
 
 #--------------------------------------#difuso 1 modificado------------------------------------------
