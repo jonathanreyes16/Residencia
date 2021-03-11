@@ -33,14 +33,14 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 class Eval(Resource):
 	def get(self, oxi,rc):
 		r=showFuzzy(oxi,rc)
-		return make_response(
+		return make_response(jsonify(
 			{"data" : [{
 				"Grado_de_urgencia" : r[0],
 				"Triage": r[1],
 				"Codigo": r[2],
 				"Limite": r[3]
 		}]
-		})
+		}))
 #lectura usando csv
 class EvalCSV(Resource):
 	def post(self):
@@ -53,14 +53,14 @@ class EvalCSV(Resource):
                     }
 		csv_data = pd.read_csv(data['file'])
 		r=getCSV(csv_data)
-		return make_response(
+		return make_response(jsonify(
 			{"data" : [{
 				"Grado_de_urgencia" : r[0],
 				"Triage": r[1],
 				"Codigo": r[2],
 				"Limite": r[3]
 		}]
-		})
+		}))
 
 class ex(Resource):#ejemplo de subida de archivo
 	def post(self):
