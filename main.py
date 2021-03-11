@@ -82,5 +82,5 @@ api.add_resource(EvalCSV,'/upload')
 api.add_resource(EvalCSV2,'/upload2')
 
 
-if __name__ == '__main__':
-   app.run(host='localhost', debug=True, port=5000)
+#if __name__ == '__main__':
+#   app.run(host='localhost', debug=True, port=5000)
